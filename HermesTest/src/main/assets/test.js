@@ -15,115 +15,53 @@ var __IS_DEBUG__ = true;
 
 
 var printLog = (funcName, ...msgs) => {
-  if (__IS_DEBUG__) {
-    let msg = '';
+  let msg = '';
 
-    if (msgs.length == 1) {
-      let m = msgs[0];
+  if (msgs.length == 1) {
+    let m = msgs[0];
+
+    if (typeof m === 'undefined') {
+      msg = 'undefined';
+    } else if (m == null) {
+      msg = 'null';
+    } else if (m instanceof Function) {
+      msg = m.toString();
+    } else if (m instanceof Object) {
+      msg = JSON.stringify(m);
+      if (m.message) {
+        msg = msg.concat(', ').concat(m.message).concat('\n').concat(m.stack)
+      }
+    } else {
+      msg = m.toString();
+    }
+  } else if (msgs.length > 1) {
+    for (let i = 0; i < msgs.length; i++) {
+      if (i > 0) {
+        msg = msg.concat(', ');
+      }
+
+      let m = msgs[i];
 
       if (typeof m === 'undefined') {
-        msg = 'undefined';
+        msg = msg.concat('undefined');
       } else if (m == null) {
-        msg = 'null';
+        msg = msg.concat('null');
       } else if (m instanceof Function) {
-        msg = m.toString();
+        msg = msg.concat(m.toString());
       } else if (m instanceof Object) {
-        msg = JSON.stringify(m);
+        msg = msg.concat(JSON.stringify(m));
         if (m.message) {
           msg = msg.concat(', ').concat(m.message).concat('\n').concat(m.stack)
         }
       } else {
-        msg = m.toString();
-      }
-    } else if (msgs.length > 1) {
-      for (let i = 0; i < msgs.length; i++) {
-        if (i > 0) {
-          msg = msg.concat(', ');
-        }
-
-        let m = msgs[i];
-
-        if (typeof m === 'undefined') {
-          msg = msg.concat('undefined');
-        } else if (m == null) {
-          msg = msg.concat('null');
-        } else if (m instanceof Function) {
-          msg = msg.concat(m.toString());
-        } else if (m instanceof Object) {
-          msg = msg.concat(JSON.stringify(m));
-          if (m.message) {
-            msg = msg.concat(', ').concat(m.message).concat('\n').concat(m.stack)
-          }
-        } else {
-          msg = msg.concat(m.toString());
-        }
+        msg = msg.concat(m.toString());
       }
     }
-
-    JsNativeLog(msg);
-
   }
+
+  JsNativeLog(msg);
+  //print(msg)
 };
-
-
-var _my_rt = {
-  ctxs: {},
-  createContext(name) {
-    console.log("create_proxy")
-
-    var scopeGlobal = {
-      Symbol: globalThis.Symbol,
-      Map: globalThis.Map,
-      Set: globalThis.Set,
-    }
-
-    scopeGlobal.setTimeout = (func, timeout) => {
-      let timerId = idGenerator();
-      return timerId;
-    };
-
-    scopeGlobal.clearTimeout = timerId => {
-    };
-
-    scopeGlobal.setInterval = (func, interval) => {
-      let timerId = idGenerator();
-      return timerId;
-    };
-
-    scopeGlobal.clearInterval = timerId => {
-    };
-
-    scopeGlobal.setImmediate = (func) => {
-      let timerId = idGenerator();
-      return timerId;
-    };
-
-
-
-
-    this.ctxs[name] = scopeGlobal
-
-  },
-  getGlobal(name) {
-    return this.ctxs[name];
-  },
-  removeGlobal(name) {
-    delete this.ctxs[name];
-  },
-  evaluateInContext(name, fn) {
-    var global = this.ctxs[name];
-    if (!global) {
-      throw new Error('Biz not registered in this zone');
-    } else {
-      console.log(`evaluateInContext ${global} ${global.__instantModuleProxy}`)
-    }
-    return fn(global);
-  }
-};
-
-console.log(' out global ', globalThis, Object.keys(globalThis));
-
-_my_rt.createContext("testModule");
 
 
 (function () {
@@ -131,62 +69,63 @@ _my_rt.createContext("testModule");
   var my_engineGlobal = { v: 1 };
   var my_engineGlobal2 = { v: 2 };
   var my_engineGlobal3 = { v: 3 };
-  var my_engineGlobal4 = { v: 4 };
-  var my_engineGlobal5 = { v: 5 };
-  var my_engineGlobal6 = { v: 6 };
-  var my_engineGlobal7 = { v: 7 };
-  var my_engineGlobal8 = { v: 8 };
-  var my_engineGlobal9 = { v: 9 };
-  var my_engineGlobal10 = { v: 10 };
-  var my_engineGlobal11 = { v: 11 };
-  var my_engineGlobal12 = { v: 12 };
-  var my_engineGlobal13 = { v: 13 };
-  var my_engineGlobal14 = { v: 14 };
-  var my_engineGlobal15 = { v: 15 };
+
+  (function () {
+      /******/ (() => { // webpackBootstrap
+
+      (() => {
+        var data = 1
+        var oldGlobal = my_engineGlobal;
+        console.log(" originGlobal my_engineGlobal === oldGlobal  ", my_engineGlobal === oldGlobal);
+        console.log('  originGlobal outer ', my_engineGlobal);
+        tempTest(my_engineGlobal, my_engineGlobal2, my_engineGlobal3);
+
+        function tempTest(globalArg, globalArg2, globalArg3) {
+          console.log(" originGlobal my_engineGlobal === oldGlobal  ", my_engineGlobal === oldGlobal);
+          console.log(' temp originGlobal inner globalArg', globalArg);
+          console.log(' temp originGlobal inner ', my_engineGlobal);
+
+        }
+      })();
 
 
-  if (!globalThis._my_rt) {
-    globalThis._my_rt = {
-      evaluateInContext(name, fn) {
-        fn(globalThis);
-      }
-    }
-  }
-  _my_rt.evaluateInContext('testModule', function (global) {
-    console.log('  evaluateInContext start ', Object.keys(global).length, Object.keys(global));
-    var globalThis = global;
-    console.log('  evaluateInContext start ', Object.keys(globalThis).length, Object.keys(globalThis));
-    var window = globalThis.window;
-    var setTimeout = globalThis.setTimeout;
-    globalThis.window = globalThis;
-    globalThis.console = console;
-    var AbortController = function (...args) {
-      return new globalThis.AbortController(...args);
-    };
-    var XMLHttpRequest = function (...args) {
-      return new globalThis.XMLHttpRequest(...args);
-    };
+      var testModuleKK = {
+        test: 1,
+      /***/ "../node_modules/.pnpm/abort-controller@3.0.0/node_modules/abort-controller/dist/abort-controller.umd.js":
+      /*!***************************************************************************************************************!*\
+        !*** ../node_modules/.pnpm/abort-controller@3.0.0/node_modules/abort-controller/dist/abort-controller.umd.js ***!
+        \***************************************************************************************************************/
+      /***/ (function (__unused_webpack_module, exports) {
 
-      /******/ (() => { // webpackBootstrap webpack闭包开始
-
-      var testModuleKK = { test: 1 };
- /******/ 	var __webpack_modules__ = ({
-
-/***/ "../node_modules/.pnpm/abort-controller@3.0.0/node_modules/abort-controller/dist/abort-controller.umd.js":
-/*!***************************************************************************************************************!*\
-  !*** ../node_modules/.pnpm/abort-controller@3.0.0/node_modules/abort-controller/dist/abort-controller.umd.js ***!
-  \***************************************************************************************************************/
-/***/ (function (__unused_webpack_module, exports) {
-
-/**
- * @author Toru Nagashima <https://github.com/mysticatea>
- * See LICENSE file in root directory for full license.
- */(function (a, b) { true ? b(exports) : 0 })(this, function (a) { 'use strict'; function b(a) { return b = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (a) { return typeof a } : function (a) { return a && "function" == typeof Symbol && a.constructor === Symbol && a !== Symbol.prototype ? "symbol" : typeof a }, b(a) } function c(a, b) { if (!(a instanceof b)) throw new TypeError("Cannot call a class as a function") } function d(a, b) { for (var c, d = 0; d < b.length; d++)c = b[d], c.enumerable = c.enumerable || !1, c.configurable = !0, "value" in c && (c.writable = !0), Object.defineProperty(a, c.key, c) } function e(a, b, c) { return b && d(a.prototype, b), c && d(a, c), a } function f(a, b) { if ("function" != typeof b && null !== b) throw new TypeError("Super expression must either be null or a function"); a.prototype = Object.create(b && b.prototype, { constructor: { value: a, writable: !0, configurable: !0 } }), b && h(a, b) } function g(a) { return g = Object.setPrototypeOf ? Object.getPrototypeOf : function (a) { return a.__proto__ || Object.getPrototypeOf(a) }, g(a) } function h(a, b) { return h = Object.setPrototypeOf || function (a, b) { return a.__proto__ = b, a }, h(a, b) } function i(a) { if (void 0 === a) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return a } function j(a, b) { return b && ("object" == typeof b || "function" == typeof b) ? b : i(a) } function k(a) { var b = F.get(a); return console.assert(null != b, "'this' is expected an Event object, but got", a), b } function l(a) { return null == a.passiveListener ? void (!a.event.cancelable || (a.canceled = !0, "function" == typeof a.event.preventDefault && a.event.preventDefault())) : void ("undefined" != typeof console && "function" == typeof console.error && console.error("Unable to preventDefault inside passive event listener invocation.", a.passiveListener)) } function m(a, b) { F.set(this, { eventTarget: a, event: b, eventPhase: 2, currentTarget: a, canceled: !1, stopped: !1, immediateStopped: !1, passiveListener: null, timeStamp: b.timeStamp || Date.now() }), Object.defineProperty(this, "isTrusted", { value: !1, enumerable: !0 }); for (var c, d = Object.keys(b), e = 0; e < d.length; ++e)c = d[e], c in this || Object.defineProperty(this, c, n(c)) } function n(a) { return { get: function () { return k(this).event[a] }, set: function (b) { k(this).event[a] = b }, configurable: !0, enumerable: !0 } } function o(a) { return { value: function () { var b = k(this).event; return b[a].apply(b, arguments) }, configurable: !0, enumerable: !0 } } function p(a, b) { function c(b, c) { a.call(this, b, c) } var d = Object.keys(b); if (0 === d.length) return a; c.prototype = Object.create(a.prototype, { constructor: { value: c, configurable: !0, writable: !0 } }); for (var e, f = 0; f < d.length; ++f)if (e = d[f], !(e in a.prototype)) { var g = Object.getOwnPropertyDescriptor(b, e), h = "function" == typeof g.value; Object.defineProperty(c.prototype, e, h ? o(e) : n(e)) } return c } function q(a) { if (null == a || a === Object.prototype) return m; var b = G.get(a); return null == b && (b = p(q(Object.getPrototypeOf(a)), a), G.set(a, b)), b } function r(a, b) { var c = q(Object.getPrototypeOf(b)); return new c(a, b) } function s(a) { return k(a).immediateStopped } function t(a, b) { k(a).eventPhase = b } function u(a, b) { k(a).currentTarget = b } function v(a, b) { k(a).passiveListener = b } function w(a) { return null !== a && "object" === b(a) } function x(a) { var b = H.get(a); if (null == b) throw new TypeError("'this' is expected an EventTarget object, but got another value."); return b } function y(a) { return { get: function () { for (var b = x(this), c = b.get(a); null != c;) { if (3 === c.listenerType) return c.listener; c = c.next } return null }, set: function (b) { "function" == typeof b || w(b) || (b = null); for (var c = x(this), d = null, e = c.get(a); null != e;)3 === e.listenerType ? null === d ? null === e.next ? c.delete(a) : c.set(a, e.next) : d.next = e.next : d = e, e = e.next; if (null !== b) { var f = { listener: b, listenerType: 3, passive: !1, once: !1, next: null }; null === d ? c.set(a, f) : d.next = f } }, configurable: !0, enumerable: !0 } } function z(a, b) { Object.defineProperty(a, "on".concat(b), y(b)) } function A(a) { function b() { B.call(this) } b.prototype = Object.create(B.prototype, { constructor: { value: b, configurable: !0, writable: !0 } }); for (var c = 0; c < a.length; ++c)z(b.prototype, a[c]); return b } function B() { if (this instanceof B) return void H.set(this, new Map); if (1 === arguments.length && Array.isArray(arguments[0])) return A(arguments[0]); if (0 < arguments.length) { for (var a = Array(arguments.length), b = 0; b < arguments.length; ++b)a[b] = arguments[b]; return A(a) } throw new TypeError("Cannot call a class as a function") } function C() { var a = Object.create(K.prototype); return B.call(a), L.set(a, !1), a } function D(a) { !1 !== L.get(a) || (L.set(a, !0), a.dispatchEvent({ type: "abort" })) } function E(a) { var c = N.get(a); if (null == c) throw new TypeError("Expected 'this' to be an 'AbortController' object, but got ".concat(null === a ? "null" : b(a))); return c } var F = new WeakMap, G = new WeakMap; m.prototype = { get type() { return k(this).event.type }, get target() { return k(this).eventTarget }, get currentTarget() { return k(this).currentTarget }, composedPath: function () { var a = k(this).currentTarget; return null == a ? [] : [a] }, get NONE() { return 0 }, get CAPTURING_PHASE() { return 1 }, get AT_TARGET() { return 2 }, get BUBBLING_PHASE() { return 3 }, get eventPhase() { return k(this).eventPhase }, stopPropagation: function () { var a = k(this); a.stopped = !0, "function" == typeof a.event.stopPropagation && a.event.stopPropagation() }, stopImmediatePropagation: function () { var a = k(this); a.stopped = !0, a.immediateStopped = !0, "function" == typeof a.event.stopImmediatePropagation && a.event.stopImmediatePropagation() }, get bubbles() { return !!k(this).event.bubbles }, get cancelable() { return !!k(this).event.cancelable }, preventDefault: function () { l(k(this)) }, get defaultPrevented() { return k(this).canceled }, get composed() { return !!k(this).event.composed }, get timeStamp() { return k(this).timeStamp }, get srcElement() { return k(this).eventTarget }, get cancelBubble() { return k(this).stopped }, set cancelBubble(a) { if (a) { var b = k(this); b.stopped = !0, "boolean" == typeof b.event.cancelBubble && (b.event.cancelBubble = !0) } }, get returnValue() { return !k(this).canceled }, set returnValue(a) { a || l(k(this)) }, initEvent: function () { } }, Object.defineProperty(m.prototype, "constructor", { value: m, configurable: !0, writable: !0 }), "undefined" != typeof window && "undefined" != typeof window.Event && (Object.setPrototypeOf(m.prototype, window.Event.prototype), G.set(window.Event.prototype, m)); var H = new WeakMap, I = 1, J = 2; B.prototype = { addEventListener: function (a, b, c) { if (null != b) { if ("function" != typeof b && !w(b)) throw new TypeError("'listener' should be a function or an object."); var d = x(this), e = w(c), f = e ? !!c.capture : !!c, g = f ? I : J, h = { listener: b, listenerType: g, passive: e && !!c.passive, once: e && !!c.once, next: null }, i = d.get(a); if (void 0 === i) return void d.set(a, h); for (var j = null; null != i;) { if (i.listener === b && i.listenerType === g) return; j = i, i = i.next } j.next = h } }, removeEventListener: function (a, b, c) { if (null != b) for (var d = x(this), e = w(c) ? !!c.capture : !!c, f = e ? I : J, g = null, h = d.get(a); null != h;) { if (h.listener === b && h.listenerType === f) return void (null === g ? null === h.next ? d.delete(a) : d.set(a, h.next) : g.next = h.next); g = h, h = h.next } }, dispatchEvent: function (a) { if (null == a || "string" != typeof a.type) throw new TypeError("\"event.type\" should be a string."); var b = x(this), c = a.type, d = b.get(c); if (null == d) return !0; for (var e = r(this, a), f = null; null != d;) { if (d.once ? null === f ? null === d.next ? b.delete(c) : b.set(c, d.next) : f.next = d.next : f = d, v(e, d.passive ? d.listener : null), "function" == typeof d.listener) try { d.listener.call(this, e) } catch (a) { "undefined" != typeof console && "function" == typeof console.error && console.error(a) } else d.listenerType !== 3 && "function" == typeof d.listener.handleEvent && d.listener.handleEvent(e); if (s(e)) break; d = d.next } return v(e, null), t(e, 0), u(e, null), !e.defaultPrevented } }, Object.defineProperty(B.prototype, "constructor", { value: B, configurable: !0, writable: !0 }), "undefined" != typeof window && "undefined" != typeof window.EventTarget && Object.setPrototypeOf(B.prototype, window.EventTarget.prototype); var K = function (a) { function d() { var a; throw c(this, d), a = j(this, g(d).call(this)), new TypeError("AbortSignal cannot be constructed directly") } return f(d, a), e(d, [{ key: "aborted", get: function () { var a = L.get(this); if ("boolean" != typeof a) throw new TypeError("Expected 'this' to be an 'AbortSignal' object, but got ".concat(null === this ? "null" : b(this))); return a } }]), d }(B); z(K.prototype, "abort"); var L = new WeakMap; Object.defineProperties(K.prototype, { aborted: { enumerable: !0 } }), "function" == typeof Symbol && "symbol" === b(Symbol.toStringTag) && Object.defineProperty(K.prototype, Symbol.toStringTag, { configurable: !0, value: "AbortSignal" }); var M = function () { function a() { c(this, a), N.set(this, C()) } return e(a, [{ key: "abort", value: function () { D(E(this)) } }, { key: "signal", get: function () { return E(this) } }]), a }(), N = new WeakMap; if (Object.defineProperties(M.prototype, { signal: { enumerable: !0 }, abort: { enumerable: !0 } }), "function" == typeof Symbol && "symbol" === b(Symbol.toStringTag) && Object.defineProperty(M.prototype, Symbol.toStringTag, { configurable: !0, value: "AbortController" }), a.AbortController = M, a.AbortSignal = K, a.default = M, Object.defineProperty(a, "__esModule", { value: !0 }), false && 0) { var O = Function("return this")(); "undefined" == typeof O.AbortController && (O.AbortController = M, O.AbortSignal = K) } });
+      /**
+       * @author Toru Nagashima <https://github.com/mysticatea>
+       * See LICENSE file in root directory for full license.
+       */(function (a, b) { true ? b(exports) : 0 })(this, function (a) { 'use strict'; function b(a) { return b = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (a) { return typeof a } : function (a) { return a && "function" == typeof Symbol && a.constructor === Symbol && a !== Symbol.prototype ? "symbol" : typeof a }, b(a) } function c(a, b) { if (!(a instanceof b)) throw new TypeError("Cannot call a class as a function") } function d(a, b) { for (var c, d = 0; d < b.length; d++)c = b[d], c.enumerable = c.enumerable || !1, c.configurable = !0, "value" in c && (c.writable = !0), Object.defineProperty(a, c.key, c) } function e(a, b, c) { return b && d(a.prototype, b), c && d(a, c), a } function f(a, b) { if ("function" != typeof b && null !== b) throw new TypeError("Super expression must either be null or a function"); a.prototype = Object.create(b && b.prototype, { constructor: { value: a, writable: !0, configurable: !0 } }), b && h(a, b) } function g(a) { return g = Object.setPrototypeOf ? Object.getPrototypeOf : function (a) { return a.__proto__ || Object.getPrototypeOf(a) }, g(a) } function h(a, b) { return h = Object.setPrototypeOf || function (a, b) { return a.__proto__ = b, a }, h(a, b) } function i(a) { if (void 0 === a) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return a } function j(a, b) { return b && ("object" == typeof b || "function" == typeof b) ? b : i(a) } function k(a) { var b = F.get(a); return console.assert(null != b, "'this' is expected an Event object, but got", a), b } function l(a) { return null == a.passiveListener ? void (!a.event.cancelable || (a.canceled = !0, "function" == typeof a.event.preventDefault && a.event.preventDefault())) : void ("undefined" != typeof console && "function" == typeof console.error && console.error("Unable to preventDefault inside passive event listener invocation.", a.passiveListener)) } function m(a, b) { F.set(this, { eventTarget: a, event: b, eventPhase: 2, currentTarget: a, canceled: !1, stopped: !1, immediateStopped: !1, passiveListener: null, timeStamp: b.timeStamp || Date.now() }), Object.defineProperty(this, "isTrusted", { value: !1, enumerable: !0 }); for (var c, d = Object.keys(b), e = 0; e < d.length; ++e)c = d[e], c in this || Object.defineProperty(this, c, n(c)) } function n(a) { return { get: function () { return k(this).event[a] }, set: function (b) { k(this).event[a] = b }, configurable: !0, enumerable: !0 } } function o(a) { return { value: function () { var b = k(this).event; return b[a].apply(b, arguments) }, configurable: !0, enumerable: !0 } } function p(a, b) { function c(b, c) { a.call(this, b, c) } var d = Object.keys(b); if (0 === d.length) return a; c.prototype = Object.create(a.prototype, { constructor: { value: c, configurable: !0, writable: !0 } }); for (var e, f = 0; f < d.length; ++f)if (e = d[f], !(e in a.prototype)) { var g = Object.getOwnPropertyDescriptor(b, e), h = "function" == typeof g.value; Object.defineProperty(c.prototype, e, h ? o(e) : n(e)) } return c } function q(a) { if (null == a || a === Object.prototype) return m; var b = G.get(a); return null == b && (b = p(q(Object.getPrototypeOf(a)), a), G.set(a, b)), b } function r(a, b) { var c = q(Object.getPrototypeOf(b)); return new c(a, b) } function s(a) { return k(a).immediateStopped } function t(a, b) { k(a).eventPhase = b } function u(a, b) { k(a).currentTarget = b } function v(a, b) { k(a).passiveListener = b } function w(a) { return null !== a && "object" === b(a) } function x(a) { var b = H.get(a); if (null == b) throw new TypeError("'this' is expected an EventTarget object, but got another value."); return b } function y(a) { return { get: function () { for (var b = x(this), c = b.get(a); null != c;) { if (3 === c.listenerType) return c.listener; c = c.next } return null }, set: function (b) { "function" == typeof b || w(b) || (b = null); for (var c = x(this), d = null, e = c.get(a); null != e;)3 === e.listenerType ? null === d ? null === e.next ? c.delete(a) : c.set(a, e.next) : d.next = e.next : d = e, e = e.next; if (null !== b) { var f = { listener: b, listenerType: 3, passive: !1, once: !1, next: null }; null === d ? c.set(a, f) : d.next = f } }, configurable: !0, enumerable: !0 } } function z(a, b) { Object.defineProperty(a, "on".concat(b), y(b)) } function A(a) { function b() { B.call(this) } b.prototype = Object.create(B.prototype, { constructor: { value: b, configurable: !0, writable: !0 } }); for (var c = 0; c < a.length; ++c)z(b.prototype, a[c]); return b } function B() { if (this instanceof B) return void H.set(this, new Map); if (1 === arguments.length && Array.isArray(arguments[0])) return A(arguments[0]); if (0 < arguments.length) { for (var a = Array(arguments.length), b = 0; b < arguments.length; ++b)a[b] = arguments[b]; return A(a) } throw new TypeError("Cannot call a class as a function") } function C() { var a = Object.create(K.prototype); return B.call(a), L.set(a, !1), a } function D(a) { !1 !== L.get(a) || (L.set(a, !0), a.dispatchEvent({ type: "abort" })) } function E(a) { var c = N.get(a); if (null == c) throw new TypeError("Expected 'this' to be an 'AbortController' object, but got ".concat(null === a ? "null" : b(a))); return c } var F = new WeakMap, G = new WeakMap; m.prototype = { get type() { return k(this).event.type }, get target() { return k(this).eventTarget }, get currentTarget() { return k(this).currentTarget }, composedPath: function () { var a = k(this).currentTarget; return null == a ? [] : [a] }, get NONE() { return 0 }, get CAPTURING_PHASE() { return 1 }, get AT_TARGET() { return 2 }, get BUBBLING_PHASE() { return 3 }, get eventPhase() { return k(this).eventPhase }, stopPropagation: function () { var a = k(this); a.stopped = !0, "function" == typeof a.event.stopPropagation && a.event.stopPropagation() }, stopImmediatePropagation: function () { var a = k(this); a.stopped = !0, a.immediateStopped = !0, "function" == typeof a.event.stopImmediatePropagation && a.event.stopImmediatePropagation() }, get bubbles() { return !!k(this).event.bubbles }, get cancelable() { return !!k(this).event.cancelable }, preventDefault: function () { l(k(this)) }, get defaultPrevented() { return k(this).canceled }, get composed() { return !!k(this).event.composed }, get timeStamp() { return k(this).timeStamp }, get srcElement() { return k(this).eventTarget }, get cancelBubble() { return k(this).stopped }, set cancelBubble(a) { if (a) { var b = k(this); b.stopped = !0, "boolean" == typeof b.event.cancelBubble && (b.event.cancelBubble = !0) } }, get returnValue() { return !k(this).canceled }, set returnValue(a) { a || l(k(this)) }, initEvent: function () { } }, Object.defineProperty(m.prototype, "constructor", { value: m, configurable: !0, writable: !0 }), "undefined" != typeof window && "undefined" != typeof window.Event && (Object.setPrototypeOf(m.prototype, window.Event.prototype), G.set(window.Event.prototype, m)); var H = new WeakMap, I = 1, J = 2; B.prototype = { addEventListener: function (a, b, c) { if (null != b) { if ("function" != typeof b && !w(b)) throw new TypeError("'listener' should be a function or an object."); var d = x(this), e = w(c), f = e ? !!c.capture : !!c, g = f ? I : J, h = { listener: b, listenerType: g, passive: e && !!c.passive, once: e && !!c.once, next: null }, i = d.get(a); if (void 0 === i) return void d.set(a, h); for (var j = null; null != i;) { if (i.listener === b && i.listenerType === g) return; j = i, i = i.next } j.next = h } }, removeEventListener: function (a, b, c) { if (null != b) for (var d = x(this), e = w(c) ? !!c.capture : !!c, f = e ? I : J, g = null, h = d.get(a); null != h;) { if (h.listener === b && h.listenerType === f) return void (null === g ? null === h.next ? d.delete(a) : d.set(a, h.next) : g.next = h.next); g = h, h = h.next } }, dispatchEvent: function (a) { if (null == a || "string" != typeof a.type) throw new TypeError("\"event.type\" should be a string."); var b = x(this), c = a.type, d = b.get(c); if (null == d) return !0; for (var e = r(this, a), f = null; null != d;) { if (d.once ? null === f ? null === d.next ? b.delete(c) : b.set(c, d.next) : f.next = d.next : f = d, v(e, d.passive ? d.listener : null), "function" == typeof d.listener) try { d.listener.call(this, e) } catch (a) { "undefined" != typeof console && "function" == typeof console.error && console.error(a) } else d.listenerType !== 3 && "function" == typeof d.listener.handleEvent && d.listener.handleEvent(e); if (s(e)) break; d = d.next } return v(e, null), t(e, 0), u(e, null), !e.defaultPrevented } }, Object.defineProperty(B.prototype, "constructor", { value: B, configurable: !0, writable: !0 }), "undefined" != typeof window && "undefined" != typeof window.EventTarget && Object.setPrototypeOf(B.prototype, window.EventTarget.prototype); var K = function (a) { function d() { var a; throw c(this, d), a = j(this, g(d).call(this)), new TypeError("AbortSignal cannot be constructed directly") } return f(d, a), e(d, [{ key: "aborted", get: function () { var a = L.get(this); if ("boolean" != typeof a) throw new TypeError("Expected 'this' to be an 'AbortSignal' object, but got ".concat(null === this ? "null" : b(this))); return a } }]), d }(B); z(K.prototype, "abort"); var L = new WeakMap; Object.defineProperties(K.prototype, { aborted: { enumerable: !0 } }), "function" == typeof Symbol && "symbol" === b(Symbol.toStringTag) && Object.defineProperty(K.prototype, Symbol.toStringTag, { configurable: !0, value: "AbortSignal" }); var M = function () { function a() { c(this, a), N.set(this, C()) } return e(a, [{ key: "abort", value: function () { D(E(this)) } }, { key: "signal", get: function () { return E(this) } }]), a }(), N = new WeakMap; if (Object.defineProperties(M.prototype, { signal: { enumerable: !0 }, abort: { enumerable: !0 } }), "function" == typeof Symbol && "symbol" === b(Symbol.toStringTag) && Object.defineProperty(M.prototype, Symbol.toStringTag, { configurable: !0, value: "AbortController" }), a.AbortController = M, a.AbortSignal = K, a.default = M, Object.defineProperty(a, "__esModule", { value: !0 }), false && 0) { var O = Function("return this")(); "undefined" == typeof O.AbortController && (O.AbortController = M, O.AbortSignal = K) } });
             //# sourceMappingURL=abort-controller.umd.js.map
 
 
             /***/
           }),
+
+      };
+      var __webpack_modules__ = ({
+
+      /***/ "../node_modules/.pnpm/abort-controller@3.0.0/node_modules/abort-controller/dist/abort-controller.umd.js":
+      /*!***************************************************************************************************************!*\
+        !*** ../node_modules/.pnpm/abort-controller@3.0.0/node_modules/abort-controller/dist/abort-controller.umd.js ***!
+        \***************************************************************************************************************/
+      /***/ (function (__unused_webpack_module, exports) {
+
+      /**
+       * @author Toru Nagashima <https://github.com/mysticatea>
+       * See LICENSE file in root directory for full license.
+       */(function (a, b) { true ? b(exports) : 0 })(this, function (a) { 'use strict'; function b(a) { return b = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (a) { return typeof a } : function (a) { return a && "function" == typeof Symbol && a.constructor === Symbol && a !== Symbol.prototype ? "symbol" : typeof a }, b(a) } function c(a, b) { if (!(a instanceof b)) throw new TypeError("Cannot call a class as a function") } function d(a, b) { for (var c, d = 0; d < b.length; d++)c = b[d], c.enumerable = c.enumerable || !1, c.configurable = !0, "value" in c && (c.writable = !0), Object.defineProperty(a, c.key, c) } function e(a, b, c) { return b && d(a.prototype, b), c && d(a, c), a } function f(a, b) { if ("function" != typeof b && null !== b) throw new TypeError("Super expression must either be null or a function"); a.prototype = Object.create(b && b.prototype, { constructor: { value: a, writable: !0, configurable: !0 } }), b && h(a, b) } function g(a) { return g = Object.setPrototypeOf ? Object.getPrototypeOf : function (a) { return a.__proto__ || Object.getPrototypeOf(a) }, g(a) } function h(a, b) { return h = Object.setPrototypeOf || function (a, b) { return a.__proto__ = b, a }, h(a, b) } function i(a) { if (void 0 === a) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return a } function j(a, b) { return b && ("object" == typeof b || "function" == typeof b) ? b : i(a) } function k(a) { var b = F.get(a); return console.assert(null != b, "'this' is expected an Event object, but got", a), b } function l(a) { return null == a.passiveListener ? void (!a.event.cancelable || (a.canceled = !0, "function" == typeof a.event.preventDefault && a.event.preventDefault())) : void ("undefined" != typeof console && "function" == typeof console.error && console.error("Unable to preventDefault inside passive event listener invocation.", a.passiveListener)) } function m(a, b) { F.set(this, { eventTarget: a, event: b, eventPhase: 2, currentTarget: a, canceled: !1, stopped: !1, immediateStopped: !1, passiveListener: null, timeStamp: b.timeStamp || Date.now() }), Object.defineProperty(this, "isTrusted", { value: !1, enumerable: !0 }); for (var c, d = Object.keys(b), e = 0; e < d.length; ++e)c = d[e], c in this || Object.defineProperty(this, c, n(c)) } function n(a) { return { get: function () { return k(this).event[a] }, set: function (b) { k(this).event[a] = b }, configurable: !0, enumerable: !0 } } function o(a) { return { value: function () { var b = k(this).event; return b[a].apply(b, arguments) }, configurable: !0, enumerable: !0 } } function p(a, b) { function c(b, c) { a.call(this, b, c) } var d = Object.keys(b); if (0 === d.length) return a; c.prototype = Object.create(a.prototype, { constructor: { value: c, configurable: !0, writable: !0 } }); for (var e, f = 0; f < d.length; ++f)if (e = d[f], !(e in a.prototype)) { var g = Object.getOwnPropertyDescriptor(b, e), h = "function" == typeof g.value; Object.defineProperty(c.prototype, e, h ? o(e) : n(e)) } return c } function q(a) { if (null == a || a === Object.prototype) return m; var b = G.get(a); return null == b && (b = p(q(Object.getPrototypeOf(a)), a), G.set(a, b)), b } function r(a, b) { var c = q(Object.getPrototypeOf(b)); return new c(a, b) } function s(a) { return k(a).immediateStopped } function t(a, b) { k(a).eventPhase = b } function u(a, b) { k(a).currentTarget = b } function v(a, b) { k(a).passiveListener = b } function w(a) { return null !== a && "object" === b(a) } function x(a) { var b = H.get(a); if (null == b) throw new TypeError("'this' is expected an EventTarget object, but got another value."); return b } function y(a) { return { get: function () { for (var b = x(this), c = b.get(a); null != c;) { if (3 === c.listenerType) return c.listener; c = c.next } return null }, set: function (b) { "function" == typeof b || w(b) || (b = null); for (var c = x(this), d = null, e = c.get(a); null != e;)3 === e.listenerType ? null === d ? null === e.next ? c.delete(a) : c.set(a, e.next) : d.next = e.next : d = e, e = e.next; if (null !== b) { var f = { listener: b, listenerType: 3, passive: !1, once: !1, next: null }; null === d ? c.set(a, f) : d.next = f } }, configurable: !0, enumerable: !0 } } function z(a, b) { Object.defineProperty(a, "on".concat(b), y(b)) } function A(a) { function b() { B.call(this) } b.prototype = Object.create(B.prototype, { constructor: { value: b, configurable: !0, writable: !0 } }); for (var c = 0; c < a.length; ++c)z(b.prototype, a[c]); return b } function B() { if (this instanceof B) return void H.set(this, new Map); if (1 === arguments.length && Array.isArray(arguments[0])) return A(arguments[0]); if (0 < arguments.length) { for (var a = Array(arguments.length), b = 0; b < arguments.length; ++b)a[b] = arguments[b]; return A(a) } throw new TypeError("Cannot call a class as a function") } function C() { var a = Object.create(K.prototype); return B.call(a), L.set(a, !1), a } function D(a) { !1 !== L.get(a) || (L.set(a, !0), a.dispatchEvent({ type: "abort" })) } function E(a) { var c = N.get(a); if (null == c) throw new TypeError("Expected 'this' to be an 'AbortController' object, but got ".concat(null === a ? "null" : b(a))); return c } var F = new WeakMap, G = new WeakMap; m.prototype = { get type() { return k(this).event.type }, get target() { return k(this).eventTarget }, get currentTarget() { return k(this).currentTarget }, composedPath: function () { var a = k(this).currentTarget; return null == a ? [] : [a] }, get NONE() { return 0 }, get CAPTURING_PHASE() { return 1 }, get AT_TARGET() { return 2 }, get BUBBLING_PHASE() { return 3 }, get eventPhase() { return k(this).eventPhase }, stopPropagation: function () { var a = k(this); a.stopped = !0, "function" == typeof a.event.stopPropagation && a.event.stopPropagation() }, stopImmediatePropagation: function () { var a = k(this); a.stopped = !0, a.immediateStopped = !0, "function" == typeof a.event.stopImmediatePropagation && a.event.stopImmediatePropagation() }, get bubbles() { return !!k(this).event.bubbles }, get cancelable() { return !!k(this).event.cancelable }, preventDefault: function () { l(k(this)) }, get defaultPrevented() { return k(this).canceled }, get composed() { return !!k(this).event.composed }, get timeStamp() { return k(this).timeStamp }, get srcElement() { return k(this).eventTarget }, get cancelBubble() { return k(this).stopped }, set cancelBubble(a) { if (a) { var b = k(this); b.stopped = !0, "boolean" == typeof b.event.cancelBubble && (b.event.cancelBubble = !0) } }, get returnValue() { return !k(this).canceled }, set returnValue(a) { a || l(k(this)) }, initEvent: function () { } }, Object.defineProperty(m.prototype, "constructor", { value: m, configurable: !0, writable: !0 }), "undefined" != typeof window && "undefined" != typeof window.Event && (Object.setPrototypeOf(m.prototype, window.Event.prototype), G.set(window.Event.prototype, m)); var H = new WeakMap, I = 1, J = 2; B.prototype = { addEventListener: function (a, b, c) { if (null != b) { if ("function" != typeof b && !w(b)) throw new TypeError("'listener' should be a function or an object."); var d = x(this), e = w(c), f = e ? !!c.capture : !!c, g = f ? I : J, h = { listener: b, listenerType: g, passive: e && !!c.passive, once: e && !!c.once, next: null }, i = d.get(a); if (void 0 === i) return void d.set(a, h); for (var j = null; null != i;) { if (i.listener === b && i.listenerType === g) return; j = i, i = i.next } j.next = h } }, removeEventListener: function (a, b, c) { if (null != b) for (var d = x(this), e = w(c) ? !!c.capture : !!c, f = e ? I : J, g = null, h = d.get(a); null != h;) { if (h.listener === b && h.listenerType === f) return void (null === g ? null === h.next ? d.delete(a) : d.set(a, h.next) : g.next = h.next); g = h, h = h.next } }, dispatchEvent: function (a) { if (null == a || "string" != typeof a.type) throw new TypeError("\"event.type\" should be a string."); var b = x(this), c = a.type, d = b.get(c); if (null == d) return !0; for (var e = r(this, a), f = null; null != d;) { if (d.once ? null === f ? null === d.next ? b.delete(c) : b.set(c, d.next) : f.next = d.next : f = d, v(e, d.passive ? d.listener : null), "function" == typeof d.listener) try { d.listener.call(this, e) } catch (a) { "undefined" != typeof console && "function" == typeof console.error && console.error(a) } else d.listenerType !== 3 && "function" == typeof d.listener.handleEvent && d.listener.handleEvent(e); if (s(e)) break; d = d.next } return v(e, null), t(e, 0), u(e, null), !e.defaultPrevented } }, Object.defineProperty(B.prototype, "constructor", { value: B, configurable: !0, writable: !0 }), "undefined" != typeof window && "undefined" != typeof window.EventTarget && Object.setPrototypeOf(B.prototype, window.EventTarget.prototype); var K = function (a) { function d() { var a; throw c(this, d), a = j(this, g(d).call(this)), new TypeError("AbortSignal cannot be constructed directly") } return f(d, a), e(d, [{ key: "aborted", get: function () { var a = L.get(this); if ("boolean" != typeof a) throw new TypeError("Expected 'this' to be an 'AbortSignal' object, but got ".concat(null === this ? "null" : b(this))); return a } }]), d }(B); z(K.prototype, "abort"); var L = new WeakMap; Object.defineProperties(K.prototype, { aborted: { enumerable: !0 } }), "function" == typeof Symbol && "symbol" === b(Symbol.toStringTag) && Object.defineProperty(K.prototype, Symbol.toStringTag, { configurable: !0, value: "AbortSignal" }); var M = function () { function a() { c(this, a), N.set(this, C()) } return e(a, [{ key: "abort", value: function () { D(E(this)) } }, { key: "signal", get: function () { return E(this) } }]), a }(), N = new WeakMap; if (Object.defineProperties(M.prototype, { signal: { enumerable: !0 }, abort: { enumerable: !0 } }), "function" == typeof Symbol && "symbol" === b(Symbol.toStringTag) && Object.defineProperty(M.prototype, Symbol.toStringTag, { configurable: !0, value: "AbortController" }), a.AbortController = M, a.AbortSignal = K, a.default = M, Object.defineProperty(a, "__esModule", { value: !0 }), false && 0) { var O = Function("return this")(); "undefined" == typeof O.AbortController && (O.AbortController = M, O.AbortSignal = K) } });
+            //# sourceMappingURL=abort-controller.umd.js.map
+
+
+            /***/
+          }),
+
 
 
 /***/ "../node_modules/.pnpm/object-path@0.11.8/node_modules/object-path/index.js":
@@ -519,6 +458,7 @@ _my_rt.createContext("testModule");
 
             /***/
           }),
+
 
 
 /***/ "../node_modules/.pnpm/whatwg-fetch@3.6.19/node_modules/whatwg-fetch/fetch.js":
@@ -1356,10 +1296,6 @@ _my_rt.createContext("testModule");
 /******/ 	(() => {
 /******/ 		__webpack_require__.g = (function () {
           /******/
-          tempTest(my_engineGlobal, my_engineGlobal2, my_engineGlobal3, my_engineGlobal4);
-          function tempTest(globalArg, globalArg2, globalArg3, globalArg4) {
-            console.log(' temp originGlobal innerhh ', my_engineGlobal, Object.keys(my_engineGlobal).length, Object.keys(my_engineGlobal));
-          }
           if (typeof globalThis === 'object') return globalThis;
 /******/ 			try {
 /******/ 				return this || new Function('return this')();
@@ -1396,10 +1332,6 @@ _my_rt.createContext("testModule");
 /******/ 	/* webpack/runtime/node module decorator */
 /******/ 	(() => {
         /******/
-        tempTest(my_engineGlobal, my_engineGlobal2, my_engineGlobal3, my_engineGlobal4);
-        function tempTest(globalArg, globalArg2, globalArg3, globalArg4) {
-          console.log(' temp originGlobal innerhh ', my_engineGlobal, Object.keys(my_engineGlobal).length, Object.keys(my_engineGlobal));
-        }
         __webpack_require__.nmd = (module) => {
           module.paths = [];
           if (!module.children) module.children = [];
@@ -1412,77 +1344,15 @@ _my_rt.createContext("testModule");
       /******/
       /************************************************************************/
       var __webpack_exports__ = {};
-      // This entry need to be wrapped in an IIFE because it need to be in strict mode.
-      (() => {
-        //        "use strict";
-        /*!*****************************************!*\
 
-          \*****************************************/
 
-        console.log('customGlobal', globalThis.moduleName, Object.keys(globalThis));
-        var oldGlobal = my_engineGlobal;
-        var testModule = testModuleKK;
-        tempTest(my_engineGlobal, my_engineGlobal2, my_engineGlobal3, my_engineGlobal4);
-        console.log(" originGlobal my_engineGlobal === oldGlobal 1 ", my_engineGlobal === oldGlobal);
-        console.log(' temp originGlobal inner old 1 ', oldGlobal);
-        function tempTest(globalArg, globalArg2, globalArg3, globalArg4) {
-          console.log(" originGlobal my_engineGlobal === oldGlobal 2 ", my_engineGlobal === oldGlobal, testStr);
-          console.log(0, Object.keys(globalThis).length, Object.keys(globalThis));
-          console.log(' temp originGlobal inner globalArg', globalArg, Object.keys(globalArg).length, Object.keys(globalArg));
-          console.log(' temp originGlobal inner ', my_engineGlobal, Object.keys(my_engineGlobal).length, Object.keys(my_engineGlobal));
-          console.log(' temp originGlobal2 inner ', my_engineGlobal2, Object.keys(my_engineGlobal2).length, Object.keys(my_engineGlobal2));
-          console.log(' temp originGlobal3 inner ', my_engineGlobal3, Object.keys(my_engineGlobal3).length, Object.keys(my_engineGlobal3));
-          console.log(' temp originGlobal4 inner ', my_engineGlobal4, Object.keys(my_engineGlobal4).length, Object.keys(my_engineGlobal4));
-          console.log(' temp originGlobal5 inner ', my_engineGlobal5, Object.keys(my_engineGlobal5).length, Object.keys(my_engineGlobal5));
-          console.log(' temp originGlobal6 inner ', my_engineGlobal6, Object.keys(my_engineGlobal6).length, Object.keys(my_engineGlobal6));
-          console.log(' temp originGlobal7 inner ', my_engineGlobal7, Object.keys(my_engineGlobal7).length, Object.keys(my_engineGlobal7));
-          console.log(' temp originGlobal8 inner ', my_engineGlobal8, Object.keys(my_engineGlobal8).length, Object.keys(my_engineGlobal8));
-          console.log(' temp originGlobal9 inner ', my_engineGlobal9, Object.keys(my_engineGlobal9).length, Object.keys(my_engineGlobal9));
-          console.log(' temp originGlobal10 inner ', my_engineGlobal10, Object.keys(my_engineGlobal10).length, Object.keys(my_engineGlobal10));
-          console.log(' temp originGlobal11 inner ', typeof my_engineGlobal11, my_engineGlobal11, Object.keys(my_engineGlobal11).length, Object.keys(my_engineGlobal11));
-          console.log(' temp originGlobal12 inner ', typeof my_engineGlobal12, my_engineGlobal12, Object.keys(my_engineGlobal12).length, Object.keys(my_engineGlobal12));
-          console.log(' temp originGlobal13 inner ', typeof my_engineGlobal13, my_engineGlobal13, Object.keys(my_engineGlobal13).length, Object.keys(my_engineGlobal13));
-          console.log(' temp originGlobal14 inner ', typeof my_engineGlobal14, my_engineGlobal14, Object.keys(my_engineGlobal14).length, Object.keys(my_engineGlobal14));
-          console.log(' temp originGlobal15 inner ', typeof my_engineGlobal15, my_engineGlobal15, Object.keys(my_engineGlobal15).length, Object.keys(my_engineGlobal15));
-
-          console.log(' temp testModule  inner ', testModule, Object.keys(testModule).length, Object.keys(testModule));
-          // console.log(' temp __webpack_modules__ inner ', __webpack_modules__, Object.temp originGlobal inner old 1 keys(__webpack_modules__).length, Object.keys(__webpack_modules__));
-          console.log(' temp originGlobal inner old ', oldGlobal);
-        }
-        console.log(" originGlobal my_engineGlobal === oldGlobal 3 ", my_engineGlobal === oldGlobal);
-        console.log(' temp originGlobal 3 ', Object.keys(my_engineGlobal).length, Object.keys(my_engineGlobal));
-      })(); //业务代码闭包执行完成
-      (() => {
-        tempTest(my_engineGlobal, my_engineGlobal2, my_engineGlobal3, my_engineGlobal4);
-
-        function tempTest(globalArg, globalArg2, globalArg3, globalArg4) {
-          console.log(0, Object.keys(globalThis).length, Object.keys(globalThis));
-          console.log(' temp originGlobal inner globalArg', globalArg, Object.keys(globalArg).length, Object.keys(globalArg));
-          console.log(' temp originGlobal inner ', my_engineGlobal, Object.keys(my_engineGlobal).length, Object.keys(my_engineGlobal));
-          console.log(' temp originGlobal2 inner ', my_engineGlobal2, Object.keys(my_engineGlobal2).length, Object.keys(my_engineGlobal2));
-          console.log(' temp originGlobal3 inner ', my_engineGlobal3, Object.keys(my_engineGlobal3).length, Object.keys(my_engineGlobal3));
-          console.log(' temp originGlobal4 inner ', my_engineGlobal4, Object.keys(my_engineGlobal4).length, Object.keys(my_engineGlobal4));
-          console.log(' temp originGlobal5 inner ', my_engineGlobal5, Object.keys(my_engineGlobal5).length, Object.keys(my_engineGlobal5));
-          console.log(' temp originGlobal6 inner ', my_engineGlobal6, Object.keys(my_engineGlobal6).length, Object.keys(my_engineGlobal6));
-          console.log(' temp originGlobal7 inner ', my_engineGlobal7, Object.keys(my_engineGlobal7).length, Object.keys(my_engineGlobal7));
-          console.log(' temp originGlobal8 inner ', my_engineGlobal8, Object.keys(my_engineGlobal8).length, Object.keys(my_engineGlobal8));
-          console.log(' temp originGlobal9 inner ', my_engineGlobal9, Object.keys(my_engineGlobal9).length, Object.keys(my_engineGlobal9));
-          console.log(' temp originGlobal10 inner ', my_engineGlobal10, Object.keys(my_engineGlobal10).length, Object.keys(my_engineGlobal10));
-          console.log(' temp originGlobal11 inner ', typeof my_engineGlobal11, my_engineGlobal11, Object.keys(my_engineGlobal11).length, Object.keys(my_engineGlobal11));
-          console.log(' temp originGlobal12 inner ', typeof my_engineGlobal12, my_engineGlobal12, Object.keys(my_engineGlobal12).length, Object.keys(my_engineGlobal12));
-          console.log(' temp originGlobal13 inner ', typeof my_engineGlobal13, my_engineGlobal13, Object.keys(my_engineGlobal13).length, Object.keys(my_engineGlobal13));
-          console.log(' temp originGlobal14 inner ', typeof my_engineGlobal14, my_engineGlobal14, Object.keys(my_engineGlobal14).length, Object.keys(my_engineGlobal14));
-          console.log(' temp originGlobal15 inner ', typeof my_engineGlobal15, my_engineGlobal15, Object.keys(my_engineGlobal15).length, Object.keys(my_engineGlobal15));
-        }
-
-      })(); //业务代码闭包执行完成
 
     })();// webpack的闭包
 
 
 
-  });// evaluateInContext 结束
+  })();// evaluateInContext 结束
 
-  console.log('hhhhhh end ');
+
 
 })();  //最大闭包结束
